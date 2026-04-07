@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINARY — Timekeepers of the Cosmos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  :root {
+    --void: #050508;
+    --obsidian: #0a0a10;
+    --midnight: #0d0d18;
+    --nebula: #12121f;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: #7a6230;
+    --platinum: #d4d4d8;
+    --silver: #a1a1aa;
+    --mist: #71717a;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #52525b;
+    --border: rgba(201,168,76,0.15);
+    --border-hover: rgba(201,168,76,0.35);
+    --glow: rgba(201,168,76,0.08);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;overflow-x:hidden}
+  body{
+    background:var(--void);
+    color:var(--text-primary);
+    font-family:'Inter',sans-serif;
+    font-weight:300;
+    line-height:1.7;
+    overflow-x:hidden;
+    cursor:none;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  #cursor{
+    position:fixed;width:8px;height:8px;
+    background:var(--gold);border-radius:50%;
+    pointer-events:none;z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:width 0.3s,height 0.3s,background 0.3s;
+    mix-blend-mode:screen;
+  }
+  #cursor-ring{
+    position:fixed;width:36px;height:36px;
+    border:1px solid rgba(201,168,76,0.5);
+    border-radius:50%;pointer-events:none;z-index:9998;
+    transform:translate(-50%,-50%);
+    transition:width 0.4s,height 0.4s,border-color 0.4s,transform 0.12s;
+  }
+  body.cursor-hover #cursor{width:12px;height:12px;background:var(--gold-light)}
+  body.cursor-hover #cursor-ring{width:56px;height:56px;border-color:var(--gold);opacity:0.6}
+
+  /* ── LOADER ── */
+  #loader{
+    position:fixed;inset:0;background:var(--void);
+    z-index:9000;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:2rem;
+  }
+  .loader-ring{
+    width:64px;height:64px;border-radius:50%;
+    border:1px solid var(--border);
+    border-top-color:var(--gold);
+    animation:spin 1.2s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loader-text{
+    font-family:'Cormorant Garamond',serif;
+    font-size:0.75rem;letter-spacing:0.5em;
+    color:var(--gold-dim);text-transform:uppercase;
+    animation:pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+  /* ── NAV ── */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:500;
+    padding:1.75rem 4rem;
+    display:flex;align-items:center;justify-content:space-between;
+    transition:background 0.6s,padding 0.4s;
+  }
+  nav.scrolled{
+    background:rgba(5,5,8,0.92);
+    backdrop-filter:blur(20px);
+    padding:1.25rem 4rem;
+    border-bottom:1px solid var(--border);
+  }
+  .nav-logo{
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.25rem;font-weight:600;
+    letter-spacing:0.25em;text-transform:uppercase;
+    color:var(--gold);text-decoration:none;
+  }
+  .nav-links{display:flex;gap:3rem;list-style:none}
+  .nav-links a{
+    font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;
+    color:var(--silver);text-decoration:none;
+    transition:color 0.3s;
+  }
+  .nav-links a:hover{color:var(--gold)}
+  .nav-cta{
+    font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;
+    color:var(--void);background:var(--gold);
+    border:none;padding:0.65rem 1.75rem;
+    font-family:'Inter',sans-serif;font-weight:400;
+    cursor:none;transition:background 0.3s,transform 0.2s;
+  }
+  .nav-cta:hover{background:var(--gold-light);transform:translateY(-1px)}
+  .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:4px}
+  .nav-hamburger span{width:24px;height:1px;background:var(--silver);transition:all 0.3s}
+
+  /* ── STAR CANVAS ── */
+  #starfield{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+  /* ── HERO ── */
+  #hero{
+    position:relative;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:6rem 2rem 4rem;overflow:hidden;
+  }
+  .hero-content{position:relative;z-index:2;max-width:900px}
+  .hero-eyebrow{
+    display:inline-block;
+    font-size:0.65rem;letter-spacing:0.6em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:2.5rem;
+    opacity:0;transform:translateY(20px);
+  }
+  .hero-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(3.5rem,8vw,8rem);
+    font-weight:300;line-height:1.0;
+    color:var(--text-primary);margin-bottom:0.25rem;
+    opacity:0;transform:translateY(30px);
+  }
+  .hero-title em{color:var(--gold);font-style:italic}
+  .hero-subtitle{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(1.1rem,2vw,1.6rem);
+    color:var(--silver);font-style:italic;font-weight:300;
+    margin-bottom:3rem;letter-spacing:0.05em;
+    opacity:0;transform:translateY(20px);
+  }
+  .hero-actions{
+    display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;
+    opacity:0;transform:translateY(20px);
+  }
+  .btn-primary{
+    font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;
+    color:var(--void);background:var(--gold);
+    border:none;padding:1rem 2.5rem;cursor:none;
+    font-family:'Inter',sans-serif;font-weight:400;
+    transition:background 0.3s,transform 0.2s,box-shadow 0.3s;
+    text-decoration:none;display:inline-block;
+  }
+  .btn-primary:hover{
+    background:var(--gold-light);transform:translateY(-2px);
+    box-shadow:0 8px 32px rgba(201,168,76,0.25);
+  }
+  .btn-outline{
+    font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;
+    color:var(--gold);background:transparent;
+    border:1px solid var(--border-hover);padding:1rem 2.5rem;
+    cursor:none;font-family:'Inter',sans-serif;font-weight:400;
+    transition:background 0.3s,color 0.3s,transform 0.2s;
+    text-decoration:none;display:inline-block;
+  }
+  .btn-outline:hover{background:var(--glow);transform:translateY(-2px)}
+
+  /* ── WATCH DIAL ── */
+  .hero-watch{
+    position:relative;margin:4rem auto 0;
+    width:clamp(260px,35vw,420px);height:clamp(260px,35vw,420px);
+    opacity:0;transform:scale(0.8) rotate(-10deg);
+  }
+  .watch-orbit{
+    position:absolute;inset:0;border-radius:50%;
+    border:1px solid var(--border);animation:orbit-rotate 20s linear infinite;
+  }
+  .watch-orbit::before{
+    content:'';position:absolute;top:-4px;left:50%;
+    transform:translateX(-50%);
+    width:8px;height:8px;background:var(--gold);border-radius:50%;
+  }
+  .watch-dial{
+    position:absolute;inset:12%;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #1a1a2e, #050508);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .watch-face-svg{width:90%;height:90%}
+  @keyframes orbit-rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .watch-orbit-2{
+    position:absolute;inset:-15px;border-radius:50%;
+    border:1px solid rgba(201,168,76,0.06);
+    animation:orbit-rotate 35s linear infinite reverse;
+  }
+  .watch-orbit-2::before{
+    content:'';position:absolute;bottom:-3px;left:30%;
+    width:6px;height:6px;background:rgba(201,168,76,0.4);border-radius:50%;
+  }
+  .watch-glow{
+    position:absolute;inset:-40px;border-radius:50%;
+    background:radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ── MARQUEE ── */
+  .marquee-wrap{
+    position:relative;overflow:hidden;
+    padding:1.5rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+    margin:0;z-index:2;
+  }
+  .marquee-track{
+    display:flex;gap:4rem;white-space:nowrap;
+    animation:marquee 25s linear infinite;
+    width:max-content;
+  }
+  .marquee-item{
+    font-family:'Cormorant Garamond',serif;
+    font-size:0.8rem;letter-spacing:0.4em;text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  .marquee-dot{color:var(--gold);font-size:0.5rem;line-height:2.2}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ── SECTION COMMONS ── */
+  section{position:relative;z-index:2}
+  .section-pad{padding:8rem 2rem}
+  .container{max-width:1200px;margin:0 auto;padding:0 2rem}
+  .section-eyebrow{
+    font-size:0.6rem;letter-spacing:0.6em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:1.5rem;
+    display:flex;align-items:center;gap:1rem;
+  }
+  .section-eyebrow::before{
+    content:'';width:2rem;height:1px;background:var(--gold-dim);
+  }
+  .section-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(2.5rem,5vw,4.5rem);
+    font-weight:300;line-height:1.1;
+    color:var(--text-primary);
+  }
+  .section-title em{color:var(--gold);font-style:italic}
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+
+  /* ── STORY SECTION ── */
+  #story{background:var(--obsidian)}
+  .story-grid{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:6rem;align-items:center;
+  }
+  .story-visual{
+    position:relative;aspect-ratio:3/4;overflow:hidden;
+  }
+  .story-img-placeholder{
+    width:100%;height:100%;
+    background:linear-gradient(135deg,#0d0d20,#12102a,#0a0815);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .story-text p{
+    color:var(--text-secondary);font-size:1rem;
+    line-height:1.9;margin-bottom:1.5rem;
+  }
+  .story-stat{
+    display:flex;gap:3rem;margin-top:3rem;padding-top:3rem;
+    border-top:1px solid var(--border);
+  }
+  .stat-item{text-align:center}
+  .stat-num{
+    font-family:'Cormorant Garamond',serif;
+    font-size:2.8rem;font-weight:300;color:var(--gold);display:block;
+  }
+  .stat-label{font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--mist)}
+
+  /* ── COLLECTIONS ── */
+  #collections{background:var(--void)}
+  .collections-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+    background:var(--border);margin-top:4rem;
+  }
+  .collection-card{
+    background:var(--void);padding:3rem 2.5rem;
+    position:relative;overflow:hidden;cursor:none;
+    transition:background 0.5s;
+  }
+  .collection-card::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 0% 100%, rgba(201,168,76,0.06) 0%, transparent 60%);
+    opacity:0;transition:opacity 0.5s;
+  }
+  .collection-card:hover{background:var(--obsidian)}
+  .collection-card:hover::before{opacity:1}
+  .card-number{
+    font-family:'Cormorant Garamond',serif;
+    font-size:0.75rem;letter-spacing:0.3em;color:var(--text-muted);
+    margin-bottom:3rem;display:block;
+  }
+  .card-watch-mini{
+    width:120px;height:120px;margin:0 auto 2.5rem;
+    border-radius:50%;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 30% 30%,#151525,#050508);
+    transition:border-color 0.4s,transform 0.4s;
+    position:relative;overflow:hidden;
+  }
+  .collection-card:hover .card-watch-mini{
+    border-color:var(--gold-dim);transform:scale(1.05) rotate(5deg);
+  }
+  .card-name{
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.5rem;font-weight:300;
+    color:var(--text-primary);margin-bottom:0.75rem;
+  }
+  .card-desc{font-size:0.85rem;color:var(--mist);line-height:1.7;margin-bottom:2rem}
+  .card-price{
+    font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;
+    color:var(--gold);
+  }
+  .card-arrow{
+    position:absolute;bottom:2.5rem;right:2.5rem;
+    width:36px;height:36px;border-radius:50%;
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    transition:border-color 0.3s,background 0.3s,transform 0.3s;
+    font-size:0.8rem;color:var(--gold-dim);
+  }
+  .collection-card:hover .card-arrow{
+    border-color:var(--gold);background:var(--gold);
+    color:var(--void);transform:rotate(45deg);
+  }
+
+  /* ── INTERACTIVE CONFIGURATOR ── */
+  #configure{
+    background:var(--obsidian);
+    overflow:hidden;
+  }
+  .configurator-wrap{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:6rem;align-items:center;
+    padding:8rem 0;
+  }
+  .config-panel{flex:1}
+  .config-title{margin-bottom:1rem}
+  .config-desc{color:var(--text-secondary);font-size:0.95rem;line-height:1.8;margin-bottom:3rem}
+  .config-options{margin-bottom:2.5rem}
+  .config-label{
+    font-size:0.6rem;letter-spacing:0.35em;text-transform:uppercase;
+    color:var(--mist);margin-bottom:1rem;display:block;
+  }
+  .option-row{display:flex;gap:0.75rem;flex-wrap:wrap}
+  .option-btn{
+    padding:0.5rem 1.25rem;font-size:0.75rem;letter-spacing:0.15em;
+    border:1px solid var(--border);background:transparent;
+    color:var(--silver);cursor:none;
+    transition:all 0.3s;font-family:'Inter',sans-serif;
+  }
+  .option-btn.active{
+    border-color:var(--gold);color:var(--gold);
+    background:rgba(201,168,76,0.08);
+  }
+  .option-btn:hover{border-color:var(--gold-dim);color:var(--text-primary)}
+  .config-watch-display{
+    position:relative;display:flex;align-items:center;justify-content:center;
+  }
+  .main-watch-ring{
+    width:clamp(280px,30vw,380px);height:clamp(280px,30vw,380px);
+    border-radius:50%;border:1px solid var(--border);
+    position:relative;display:flex;align-items:center;justify-content:center;
+  }
+  .main-watch-inner{
+    width:88%;height:88%;border-radius:50%;
+    border:1px solid rgba(201,168,76,0.1);
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 35% 25%,#1a1a2e 0%,#050508 70%);
+    position:relative;overflow:hidden;
+    transition:all 0.5s;
+  }
+  .main-watch-inner.gold-case{
+    border-color:rgba(201,168,76,0.3);
+    background:radial-gradient(circle at 35% 25%,#1e1a10 0%,#050508 70%);
+  }
+  .main-watch-inner.platinum-case{
+    border-color:rgba(212,212,216,0.25);
+    background:radial-gradient(circle at 35% 25%,#1a1a1e 0%,#050508 70%);
+  }
+  .main-watch-inner.rose-case{
+    border-color:rgba(201,100,76,0.25);
+    background:radial-gradient(circle at 35% 25%,#1e1214 0%,#050508 70%);
+  }
+  .watch-ticker{
+    position:absolute;
+    width:2px;height:45%;
+    background:linear-gradient(to top, var(--gold), transparent);
+    bottom:50%;left:50%;transform-origin:bottom center;
+    border-radius:2px;
+    animation:tick 60s linear infinite;
+  }
+  @keyframes tick{to{transform:rotate(360deg)}}
+  .watch-ticker-2{
+    position:absolute;
+    width:1px;height:38%;
+    background:linear-gradient(to top, var(--silver), transparent);
+    bottom:50%;left:50%;transform-origin:bottom center;
+    animation:tick2 3600s linear infinite;
+    opacity:0.7;
+  }
+  @keyframes tick2{to{transform:rotate(360deg)}}
+  .orbit-particle{
+    position:absolute;inset:-20px;border-radius:50%;
+    border:1px dashed rgba(201,168,76,0.1);
+    animation:orbit-rotate 15s linear infinite;
+  }
+  .orbit-particle::before{
+    content:'';position:absolute;
+    width:5px;height:5px;background:var(--gold);border-radius:50%;
+    top:-3px;left:50%;transform:translateX(-50%);
+    box-shadow:0 0 8px var(--gold);
+  }
+
+  /* ── PROCESS ── */
+  #process{background:var(--void)}
+  .process-steps{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:1px;background:var(--border);margin-top:5rem;
+  }
+  .process-step{
+    background:var(--void);padding:3rem 2rem;
+    position:relative;
+  }
+  .step-num{
+    font-family:'Cormorant Garamond',serif;
+    font-size:3rem;font-weight:300;color:var(--border-hover);
+    display:block;margin-bottom:1.5rem;
+    transition:color 0.4s;
+  }
+  .process-step:hover .step-num{color:var(--gold-dim)}
+  .step-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.3rem;color:var(--text-primary);margin-bottom:0.75rem;
+  }
+  .step-desc{font-size:0.8rem;color:var(--mist);line-height:1.8}
+  .step-line{
+    position:absolute;top:3rem;right:0;width:1px;height:30px;
+    background:linear-gradient(to bottom,transparent,var(--border),transparent);
+  }
+
+  /* ── TESTIMONIALS ── */
+  #testimonials{
+    background:var(--obsidian);
+    overflow:hidden;
+  }
+  .testimonials-inner{padding:8rem 0}
+  .testimonials-track{
+    display:flex;gap:2rem;margin-top:4rem;
+    animation:slide 30s linear infinite;
+    width:max-content;
+  }
+  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .testimonials-track:hover{animation-play-state:paused}
+  .testimonial-card{
+    width:380px;flex-shrink:0;
+    background:var(--void);border:1px solid var(--border);
+    padding:2.5rem;position:relative;
+    transition:border-color 0.4s;cursor:none;
+  }
+  .testimonial-card:hover{border-color:var(--gold-dim)}
+  .testimonial-quote{
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.1rem;font-style:italic;font-weight:300;
+    color:var(--text-secondary);line-height:1.8;margin-bottom:2rem;
+  }
+  .testimonial-author{display:flex;align-items:center;gap:1rem}
+  .author-avatar{
+    width:42px;height:42px;border-radius:50%;
+    background:var(--obsidian);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cormorant Garamond',serif;
+    font-size:0.9rem;color:var(--gold);
+  }
+  .author-name{font-size:0.8rem;color:var(--text-primary);font-weight:400}
+  .author-title{font-size:0.7rem;color:var(--mist);letter-spacing:0.05em}
+  .stars{color:var(--gold);font-size:0.6rem;letter-spacing:0.15em;margin-bottom:1rem}
+  .testimonials-fade{
+    position:absolute;top:0;bottom:0;width:200px;pointer-events:none;z-index:3;
+  }
+  .fade-left{left:0;background:linear-gradient(to right,var(--obsidian),transparent)}
+  .fade-right{right:0;background:linear-gradient(to left,var(--obsidian),transparent)}
+
+  /* ── CTA SECTION ── */
+  #cta{
+    background:var(--void);
+    text-align:center;padding:10rem 2rem;
+    position:relative;overflow:hidden;
+  }
+  #cta::before{
+    content:'';position:absolute;
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    width:600px;height:600px;border-radius:50%;
+    background:radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 65%);
+    pointer-events:none;
+  }
+  .cta-inner{position:relative;z-index:2;max-width:700px;margin:0 auto}
+  .cta-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(3rem,7vw,6rem);
+    font-weight:300;line-height:1.1;margin-bottom:1.5rem;
+  }
+  .cta-sub{
+    color:var(--text-secondary);font-size:1rem;
+    margin-bottom:3rem;line-height:1.8;
+  }
+  .cta-divider{
+    width:60px;height:1px;background:var(--gold-dim);
+    margin:2.5rem auto;
+  }
+
+  /* ── FOOTER ── */
+  footer{
+    background:var(--obsidian);
+    border-top:1px solid var(--border);
+    padding:5rem 0 3rem;
+  }
+  .footer-grid{
+    display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+    gap:4rem;margin-bottom:4rem;
+  }
+  .footer-brand{
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.5rem;color:var(--gold);
+    letter-spacing:0.2em;margin-bottom:1.25rem;
+    display:block;
+  }
+  .footer-tagline{font-size:0.85rem;color:var(--mist);line-height:1.8;max-width:280px;margin-bottom:2rem}
+  .footer-col-title{
+    font-size:0.6rem;letter-spacing:0.4em;text-transform:uppercase;
+    color:var(--gold-dim);margin-bottom:1.5rem;
+  }
+  .footer-links{list-style:none;display:flex;flex-direction:column;gap:0.75rem}
+  .footer-links a{
+    font-size:0.85rem;color:var(--mist);text-decoration:none;
+    transition:color 0.3s;
+  }
+  .footer-links a:hover{color:var(--silver)}
+  .footer-bottom{
+    border-top:1px solid var(--border);padding-top:2rem;
+    display:flex;align-items:center;justify-content:space-between;
+    flex-wrap:wrap;gap:1rem;
+  }
+  .footer-copy{font-size:0.75rem;color:var(--text-muted);letter-spacing:0.1em}
+  .footer-coords{
+    font-size:0.7rem;color:var(--text-muted);
+    font-family:'Cormorant Garamond',serif;font-style:italic;
+  }
+  .social-links{display:flex;gap:1.5rem}
+  .social-links a{
+    font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+    color:var(--mist);text-decoration:none;transition:color 0.3s;
+  }
+  .social-links a:hover{color:var(--gold)}
+
+  /* ── SCROLL PROGRESS ── */
+  #scroll-progress{
+    position:fixed;top:0;left:0;height:1px;
+    background:var(--gold);z-index:600;
+    width:0%;transition:width 0.1s;
+  }
+
+  /* ── NEBULA PARTICLES ── */
+  .nebula-particle{
+    position:fixed;border-radius:50%;pointer-events:none;
+    filter:blur(80px);opacity:0.03;z-index:0;
+    animation:float-particle 15s ease-in-out infinite;
+  }
+  @keyframes float-particle{
+    0%,100%{transform:translateY(0) scale(1)}
+    50%{transform:translateY(-30px) scale(1.1)}
+  }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:1024px){
+    .story-grid{grid-template-columns:1fr;gap:4rem}
+    .story-visual{aspect-ratio:16/9;max-height:400px}
+    .collections-grid{grid-template-columns:1fr 1fr}
+    .configurator-wrap{grid-template-columns:1fr;gap:4rem;text-align:center}
+    .process-steps{grid-template-columns:1fr 1fr}
+    .footer-grid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:768px){
+    nav{padding:1.25rem 1.5rem}
+    nav.scrolled{padding:1rem 1.5rem}
+    .nav-links,.nav-cta{display:none}
+    .nav-hamburger{display:flex}
+    .section-pad{padding:5rem 0}
+    .collections-grid{grid-template-columns:1fr}
+    .process-steps{grid-template-columns:1fr}
+    .hero-watch{width:240px;height:240px}
+    .footer-grid{grid-template-columns:1fr}
+  }
+  @media(max-width:480px){
+    .hero-title{font-size:2.8rem}
+    .hero-actions{flex-direction:column;align-items:center}
+    .story-stat{flex-direction:column;gap:1.5rem}
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="scroll-progress"></div>
+
+<!-- Nebula bg particles -->
+<div class="nebula-particle" style="width:600px;height:600px;background:#9b6bff;top:10%;left:-10%;animation-delay:0s"></div>
+<div class="nebula-particle" style="width:400px;height:400px;background:#c9a84c;top:60%;right:-5%;animation-delay:5s"></div>
+<div class="nebula-particle" style="width:500px;height:500px;background:#4c6bc9;top:30%;left:40%;animation-delay:10s"></div>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Charting the cosmos</div>
+</div>
+
+<!-- Starfield -->
+<canvas id="starfield"></canvas>
+
+<!-- Navigation -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">Luminary</a>
+  <ul class="nav-links">
+    <li><a href="#story">Atelier</a></li>
+    <li><a href="#collections">Collections</a></li>
+    <li><a href="#configure">Bespoke</a></li>
+    <li><a href="#process">Process</a></li>
+  </ul>
+  <button class="nav-cta">Commission a Piece</button>
+  <button class="nav-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-content">
+    <span class="hero-eyebrow">Est. MMXVIII · Geneva · Atelier Céleste</span>
+    <h1 class="hero-title">The <em>night sky</em><br>belongs to you</h1>
+    <p class="hero-subtitle">Handcrafted watches bearing the exact celestial map<br>of your most defining moment</p>
+    <div class="hero-actions">
+      <a href="#configure" class="btn-primary">Begin Your Commission</a>
+      <a href="#collections" class="btn-outline">Explore Collections</a>
+    </div>
+    <!-- Animated watch dial -->
+    <div class="hero-watch" id="heroWatch">
+      <div class="watch-glow"></div>
+      <div class="watch-orbit-2"></div>
+      <div class="watch-orbit"></div>
+      <div class="watch-dial">
+        <svg class="watch-face-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Constellation dots -->
+          <circle cx="100" cy="30" r="1" fill="#c9a84c" opacity="0.9"/>
+          <circle cx="140" cy="55" r="0.8" fill="#c9a84c" opacity="0.7"/>
+          <circle cx="155" cy="90" r="1.2" fill="#c9a84c" opacity="0.8"/>
+          <circle cx="60" cy="45" r="0.7" fill="#c9a84c" opacity="0.6"/>
+          <circle cx="45" cy="80" r="1" fill="#c9a84c" opacity="0.7"/>
+          <circle cx="165" cy="130" r="0.8" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="35" cy="120" r="0.6" fill="#c9a84c" opacity="0.6"/>
+          <circle cx="70" cy="165" r="1" fill="#c9a84c" opacity="0.7"/>
+          <circle cx="130" cy="170" r="0.8" fill="#c9a84c" opacity="0.6"/>
+          <!-- Constellation lines -->
+          <line x1="100" y1="30" x2="140" y2="55" stroke="#c9a84c" stroke-width="0.3" opacity="0.3"/>
+          <line x1="140" y1="55" x2="155" y2="90" stroke="#c9a84c" stroke-width="0.3" opacity="0.3"/>
+          <line x1="60" y1="45" x2="45" y2="80" stroke="#c9a84c" stroke-width="0.3" opacity="0.3"/>
+          <!-- Star field -->
+          <circle cx="80" cy="70" r="0.5" fill="#d4d4d8" opacity="0.4"/>
+          <circle cx="120" cy="75" r="0.5" fill="#d4d4d8" opacity="0.3"/>
+          <circle cx="50" cy="110" r="0.5" fill="#d4d4d8" opacity="0.4"/>
+          <circle cx="150" cy="110" r="0.5" fill="#d4d4d8" opacity="0.3"/>
+          <circle cx="90" cy="145" r="0.5" fill="#d4d4d8" opacity="0.35"/>
+          <circle cx="110" cy="140" r="0.5" fill="#d4d4d8" opacity="0.3"/>
+          <!-- Hour markers -->
+          <g stroke="#c9a84c" stroke-width="0.5" opacity="0.5">
+            <line x1="100" y1="8" x2="100" y2="16"/>
+            <line x1="100" y1="184" x2="100" y2="192"/>
+            <line x1="8" y1="100" x2="16" y2="100"/>
+            <line x1="184" y1="100" x2="192" y2="100"/>
+          </g>
+          <!-- Outer ring -->
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.25"/>
+          <circle cx="100" cy="100" r="75" fill="none" stroke="#c9a84c" stroke-width="0.3" opacity="0.1"/>
+          <!-- Center dot -->
+          <circle cx="100" cy="100" r="3" fill="#c9a84c" opacity="0.8"/>
+          <!-- Hands (rendered in HTML overlay) -->
+        </svg>
+        <div class="watch-ticker"></div>
+        <div class="watch-ticker-2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marquee">
+    <span class="marquee-item">Platinum Movements</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Celestial Engraving</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Sapphire Crystal Dials</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Astronomical Precision</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Handcrafted in Geneva</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Personal Celestial Maps</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Swiss Mechanical Mastery</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Platinum Movements</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Celestial Engraving</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Sapphire Crystal Dials</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Astronomical Precision</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Handcrafted in Geneva</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Personal Celestial Maps</span>
+    <span class="marquee-dot">◆</span>
+    <span class="marquee-item">Swiss Mechanical Mastery</span>
+    <span class="marquee-dot">◆</span>
+  </div>
+</div>
+
+<!-- Story -->
+<section id="story" class="section-pad">
+  <div class="container">
+    <div class="story-grid">
+      <div class="story-visual reveal">
+        <div class="story-img-placeholder">
+          <svg width="200" height="240" viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Abstract craftsman hands silhouette -->
+            <circle cx="100" cy="120" r="70" stroke="#c9a84c" stroke-width="0.5" opacity="0.3"/>
+            <circle cx="100" cy="120" r="55" stroke="#c9a84c" stroke-width="0.3" opacity="0.2"/>
+            <circle cx="100" cy="120" r="40" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+            <!-- Stars -->
+            <circle cx="100" cy="65" r="2" fill="#c9a84c" opacity="0.8"/>
+            <circle cx="140" cy="85" r="1.5" fill="#c9a84c" opacity="0.6"/>
+            <circle cx="60" cy="95" r="1.2" fill="#c9a84c" opacity="0.5"/>
+            <circle cx="150" cy="130" r="1.8" fill="#c9a84c" opacity="0.7"/>
+            <circle cx="50" cy="145" r="1.3" fill="#c9a84c" opacity="0.5"/>
+            <circle cx="100" cy="175" r="1.5" fill="#c9a84c" opacity="0.6"/>
+            <!-- Lines -->
+            <line x1="100" y1="65" x2="140" y2="85" stroke="#c9a84c" stroke-width="0.4" opacity="0.25"/>
+            <line x1="60" y1="95" x2="100" y2="65" stroke="#c9a84c" stroke-width="0.4" opacity="0.25"/>
+            <line x1="150" y1="130" x2="140" y2="85" stroke="#c9a84c" stroke-width="0.4" opacity="0.25"/>
+            <text x="100" y="215" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="10" fill="#c9a84c" opacity="0.5" letter-spacing="4">ATELIER CÉLESTE</text>
+          </svg>
+        </div>
+      </div>
+      <div class="story-text">
+        <div class="section-eyebrow reveal">Our Philosophy</div>
+        <h2 class="section-title reveal">Crafted at the<br>intersection of <em>art<br>and astronomy</em></h2>
+        <div class="reveal">
+          <p>In 2018, master horologist Élise Marchetti gazed at the night sky above her Geneva atelier and asked a singular question: what if a watch face could hold not just time, but a specific moment in the cosmos?</p>
+          <p>Every Luminary timepiece begins with a date, a time, and a place. Using our proprietary celestial mapping process, we render the precise positions of stars, planets, and constellations as they appeared at that exact instant — your wedding night, a child's first breath, a summit reached at dawn.</p>
+          <p>The movement beneath is a hand-assembled Swiss caliber requiring 340 hours of craftsmanship. The result is not merely a watch. It is an heirloom of time itself.</p>
+        </div>
+        <div class="story-stat reveal">
+          <div class="stat-item">
+            <span class="stat-num">47</span>
+            <span class="stat-label">Pieces Per Year</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">340</span>
+            <span class="stat-label">Hours per Watch</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">12</span>
+            <span class="stat-label">Master Artisans</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Collections -->
+<section id="collections" class="section-pad">
+  <div class="container">
+    <div class="section-eyebrow reveal">Our Collections</div>
+    <h2 class="section-title reveal">Three paths through<br>the <em>infinite dark</em></h2>
+  </div>
+  <div class="container">
+    <div class="collections-grid reveal">
+      <!-- Card 1 -->
+      <div class="collection-card">
+        <span class="card-number">01</span>
+        <div class="card-watch-mini">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="35" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+            <circle cx="40" cy="40" r="28" fill="none" stroke="#c9a84c" stroke-width="0.3" opacity="0.2"/>
+            <circle cx="40" cy="12" r="1.5" fill="#c9a84c" opacity="0.8"/>
+            <circle cx="62" cy="28" r="1" fill="#c9a84c" opacity="0.6"/>
+            <circle cx="18" cy="55" r="1.2" fill="#c9a84c" opacity="0.7"/>
+            <line x1="40" y1="12" x2="62" y2="28" stroke="#c9a84c" stroke-width="0.3" opacity="0.3"/>
+            <circle cx="40" cy="40" r="2" fill="#c9a84c" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="card-name">Solstice</div>
+        <p class="card-desc">Our entry into eternity. A 40mm platinum case bearing the stellar map of any moment since 1900. Sapphire crystal front and back, 72-hour power reserve.</p>
+        <div class="card-price">From CHF 48,000</div>
+        <div class="card-arrow">→</div>
+      </div>
+      <!-- Card 2 -->
+      <div class="collection-card">
+        <span class="card-number">02</span>
+        <div class="card-watch-mini">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="35" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.6"/>
+            <circle cx="40" cy="40" r="28" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.3"/>
+            <circle cx="40" cy="10" r="2" fill="#c9a84c" opacity="0.9"/>
+            <circle cx="65" cy="35" r="1.5" fill="#c9a84c" opacity="0.7"/>
+            <circle cx="55" cy="65" r="1.2" fill="#c9a84c" opacity="0.8"/>
+            <circle cx="20" cy="58" r="1.8" fill="#c9a84c" opacity="0.6"/>
+            <circle cx="15" cy="28" r="1.2" fill="#c9a84c" opacity="0.7"/>
+            <line x1="40" y1="10" x2="65" y2="35" stroke="#c9a84c" stroke-width="0.4" opacity="0.4"/>
+            <line x1="65" y1="35" x2="55" y2="65" stroke="#c9a84c" stroke-width="0.4" opacity="0.4"/>
+            <line x1="55" y1="65" x2="20" y2="58" stroke="#c9a84c" stroke-width="0.4" opacity="0.4"/>
+            <line x1="20" y1="58" x2="15" y2="28" stroke="#c9a84c" stroke-width="0.4" opacity="0.4"/>
+            <circle cx="40" cy="40" r="3" fill="#c9a84c" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="card-name">Aphelion</div>
+        <p class="card-desc">Our masterwork. A tourbillon movement with a full orrery complication — live planetary positions relative to your celestial birthmap.</p>
+        <div class="card-price">From CHF 180,000</div>
+        <div class="card-arrow">→</div>
+      </div>
+      <!-- Card 3 -->
+      <div class="collection-card">
+        <span class="card-number">03</span>
+        <div class="card-watch-mini">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="35" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.5"/>
+            <circle cx="40" cy="40" r="22" fill="rgba(201,168,76,0.05)" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+            <circle cx="40" cy="40" r="10" fill="rgba(201,168,76,0.08)" stroke="#c9a84c" stroke-width="0.5" opacity="0.6"/>
+            <circle cx="40" cy="8" r="1.5" fill="#c9a84c" opacity="0.8"/>
+            <circle cx="68" cy="55" r="1" fill="#c9a84c" opacity="0.5"/>
+            <circle cx="15" cy="50" r="1.3" fill="#c9a84c" opacity="0.7"/>
+            <circle cx="40" cy="40" r="2.5" fill="#c9a84c" opacity="0.9"/>
+          </svg>
+        </div>
+        <div class="card-name">Zenith</div>
+        <p class="card-desc">The pinnacle of our craft. A one-of-one commission with meteorite dial, hand-engraved case, and bespoke constellation rendering in your chosen gemstones.</p>
+        <div class="card-price">From CHF 480,000</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Interactive Configurator -->
+<section id="configure" class="section-pad">
+  <div class="container">
+    <div class="configurator-wrap">
+      <div class="config-panel">
+        <div class="section-eyebrow reveal">Bespoke Atelier</div>
+        <h2 class="section-title config-title reveal">Design your<br><em>personal cosmos</em></h2>
+        <p class="config-desc reveal">Every decision shapes the universe on your wrist. Choose your case material, dial atmosphere, and the moment in time you wish to immortalise.</p>
+
+        <div class="config-options reveal">
+          <span class="config-label">Case Material</span>
+          <div class="option-row" id="caseOptions">
+            <button class="option-btn active" data-case="platinum" onclick="selectCase(this,'platinum-case')">Platinum</button>
+            <button class="option-btn" data-case="gold" onclick="selectCase(this,'gold-case')">Rose Gold</button>
+            <button class="option-btn" data-case="titanium" onclick="selectCase(this,'')">Titanium</button>
+          </div>
+        </div>
+
+        <div class="config-options reveal">
+          <span class="config-label">Dial Atmosphere</span>
+          <div class="option-row" id="dialOptions">
+            <button class="option-btn active" data-dial="night">Midnight Void</button>
+            <button class="option-btn" data-dial="nebula">Nebula Drift</button>
+            <button class="option-btn" data-dial="eclipse">Solar Eclipse</button>
+          </div>
+        </div>
+
+        <div class="config-options reveal">
+          <span class="config-label">Your Defining Moment</span>
+          <div class="option-row">
+            <button class="option-btn active">Birth</button>
+            <button class="option-btn">Union</button>
+            <button class="option-btn">Achievement</button>
+            <button class="option-btn">Custom</button>
+          </div>
+        </div>
+
+        <div class="reveal" style="margin-top:2.5rem">
+          <a href="#" class="btn-primary">Begin Commission Process</a>
+        </div>
+      </div>
+
+      <div class="config-watch-display reveal">
+        <div class="main-watch-ring" id="mainWatchRing">
+          <div class="orbit-particle"></div>
+          <div class="main-watch-inner" id="mainWatch">
+            <div class="watch-ticker"></div>
+            <div class="watch-ticker-2"></div>
+            <svg width="90%" height="90%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="100" cy="100" r="90" fill="none" stroke="#c9a84c" stroke-width="0.5" opacity="0.25"/>
+              <circle cx="100" cy="100" r="75" fill="none" stroke="#c9a84c" stroke-width="0.3" opacity="0.1"/>
+              <!-- Stars scatter -->
+              <circle cx="70" cy="35" r="1.2" fill="#c9a84c" opacity="0.8"/>
+              <circle cx="130" cy="28" r="0.8" fill="#c9a84c" opacity="0.6"/>
+              <circle cx="160" cy="70" r="1" fill="#c9a84c" opacity="0.7"/>
+              <circle cx="165" cy="110" r="0.7" fill="#c9a84c" opacity="0.5"/>
+              <circle cx="140" cy="155" r="1.2" fill="#c9a84c" opacity="0.6"/>
+              <circle cx="60" cy="160" r="0.8" fill="#c9a84c" opacity="0.5"/>
+              <circle cx="35" cy="120" r="1" fill="#c9a84c" opacity="0.7"/>
+              <circle cx="30" cy="80" r="0.7" fill="#c9a84c" opacity="0.6"/>
+              <!-- dim stars -->
+              <circle cx="85" cy="52" r="0.5" fill="#d4d4d8" opacity="0.3"/>
+              <circle cx="115" cy="48" r="0.5" fill="#d4d4d8" opacity="0.25"/>
+              <circle cx="50" cy="100" r="0.5" fill="#d4d4d8" opacity="0.3"/>
+              <circle cx="148" cy="95" r="0.5" fill="#d4d4d8" opacity="0.25"/>
+              <circle cx="100" cy="148" r="0.5" fill="#d4d4d8" opacity="0.3"/>
+              <!-- constellation lines -->
+              <line x1="70" y1="35" x2="130" y2="28" stroke="#c9a84c" stroke-width="0.4" opacity="0.3"/>
+              <line x1="130" y1="28" x2="160" y2="70" stroke="#c9a84c" stroke-width="0.4" opacity="0.3"/>
+              <line x1="60" y1="160" x2="35" y2="120" stroke="#c9a84c" stroke-width="0.4" opacity="0.3"/>
+              <!-- Hour markers -->
+              <g stroke="#c9a84c" stroke-width="0.5" opacity="0.5">
+                <line x1="100" y1="12" x2="100" y2="22"/>
+                <line x1="100" y1="178" x2="100" y2="188"/>
+                <line x1="12" y1="100" x2="22" y2="100"/>
+                <line x1="178" y1="100" x2="188" y2="100"/>
+              </g>
+              <g stroke="#c9a84c" stroke-width="0.3" opacity="0.3">
+                <line x1="149" y1="19" x2="145" y2="28"/>
+                <line x1="181" y1="51" x2="173" y2="55"/>
+                <line x1="181" y1="149" x2="173" y2="145"/>
+                <line x1="149" y1="181" x2="145" y2="173"/>
+                <line x1="51" y1="181" x2="55" y2="173"/>
+                <line x1="19" y1="149" x2="28" y2="145"/>
+                <line x1="19" y1="51" x2="28" y2="55"/>
+                <line x1="51" y1="19" x2="55" y2="28"/>
+              </g>
+              <!-- Center -->
+              <circle cx="100" cy="100" r="4" fill="#c9a84c" opacity="0.85"/>
+              <circle cx="100" cy="100" r="1.5" fill="none" stroke="#050508" stroke-width="1"/>
+              <!-- LUMINARY text -->
+              <text x="100" y="186" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="7" fill="#c9a84c" opacity="0.6" letter-spacing="3">LUMINARY</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Process -->
+<section id="process" class="section-pad">
+  <div class="container">
+    <div class="section-eyebrow reveal">The Journey</div>
+    <h2 class="section-title reveal">From moment to<br><em>masterpiece</em></h2>
+  </div>
+  <div class="container">
+    <div class="process-steps reveal">
+      <div class="process-step">
+        <span class="step-num">I</span>
+        <div class="step-title">The Consultation</div>
+        <p class="step-desc">You share your moment — a date, a time, a place. Our celestial architects begin the stellar computation, plotting every visible body in the sky as it appeared at that precise instant.</p>
+        <div class="step-line"></div>
+      </div>
+      <div class="process-step">
+        <span class="step-num">II</span>
+        <div class="step-title">The Map</div>
+        <p class="step-desc">Our astronomers generate a certified celestial chart. This becomes the blueprint for your dial — each star, each constellation drawn to within an arc-second of accuracy.</p>
+        <div class="step-line"></div>
+      </div>
+      <div class="process-step">
+        <span class="step-num">III</span>
+        <div class="step-title">The Craft</div>
+        <p class="step-desc">Master engravers spend up to 80 hours etching your celestial map by hand into the dial. The movement is assembled over 12 weeks by a single watchmaker who signs every component.</p>
+        <div class="step-line"></div>
+      </div>
+      <div class="process-step">
+        <span class="step-num">IV</span>
+        <div class="step-title">The Ceremony</div>
+        <p class="step-desc">Delivery is a private ceremony at our Geneva atelier, where Élise herself presents your timepiece alongside its framed celestial certificate and a leather-bound provenance book.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials" style="position:relative;z-index:2;background:var(--obsidian);padding:8rem 0;overflow:hidden">
+  <div class="container">
+    <div class="section-eyebrow reveal">Collectors speak</div>
+    <h2 class="section-title reveal">Worn by those who<br><em>count moments</em></h2>
+  </div>
+  <div style="position:relative;margin-top:4rem">
+    <div class="testimonials-fade fade-left"></div>
+    <div class="testimonials-fade fade-right"></div>
+    <div class="testimonials-track">
+      <!-- Cards x2 for infinite loop -->
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"I gave my wife a Luminary Solstice engraved with the night sky of our wedding in Kyoto. She has never removed it. It is not a watch — it is our evening, eternal."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">KT</div>
+          <div><div class="author-name">Kenji Tanaka</div><div class="author-title">Collector · Tokyo</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"The Aphelion complication is unlike anything in haute horlogerie. Seeing my birth constellation and today's sky simultaneously on my wrist still stops me daily."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SV</div>
+          <div><div class="author-name">Sofia Vega</div><div class="author-title">Collector · Madrid</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"I commissioned a Zenith to mark the moment we reached Everest base camp at dawn. The meteorite dial, the custom altitude engraving — it is the summit, crystallised in platinum."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">AP</div>
+          <div><div class="author-name">Amir Patel</div><div class="author-title">Collector · Mumbai</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"Élise spent four hours with us during the consultation. The process of choosing which stars to feature — it was as moving as the piece itself. A gift for my daughter's birth."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">CL</div>
+          <div><div class="author-name">Claire Laurent</div><div class="author-title">Collector · Paris</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"The provenance book and celestial certificate that accompany the piece elevate it far beyond watchmaking. This is an artwork. A family heirloom from the first moment."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">RW</div>
+          <div><div class="author-name">Robert Walsh</div><div class="author-title">Collector · London</div></div>
+        </div>
+      </div>
+      <!-- Duplicate for seamless loop -->
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"I gave my wife a Luminary Solstice engraved with the night sky of our wedding in Kyoto. She has never removed it. It is not a watch — it is our evening, eternal."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">KT</div>
+          <div><div class="author-name">Kenji Tanaka</div><div class="author-title">Collector · Tokyo</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"The Aphelion complication is unlike anything in haute horlogerie. Seeing my birth constellation and today's sky simultaneously on my wrist still stops me daily."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SV</div>
+          <div><div class="author-name">Sofia Vega</div><div class="author-title">Collector · Madrid</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"I commissioned a Zenith to mark the moment we reached Everest base camp at dawn. The meteorite dial, the custom altitude engraving — it is the summit, crystallised in platinum."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">AP</div>
+          <div><div class="author-name">Amir Patel</div><div class="author-title">Collector · Mumbai</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"Élise spent four hours with us during the consultation. The process of choosing which stars to feature — it was as moving as the piece itself. A gift for my daughter's birth."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">CL</div>
+          <div><div class="author-name">Claire Laurent</div><div class="author-title">Collector · Paris</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★ ★ ★ ★ ★</div>
+        <p class="testimonial-quote">"The provenance book and celestial certificate that accompany the piece elevate it far beyond watchmaking. This is an artwork. A family heirloom from the first moment."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">RW</div>
+          <div><div class="author-name">Robert Walsh</div><div class="author-title">Collector · London</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-inner">
+    <div class="section-eyebrow reveal" style="justify-content:center">Reserve Your Commission</div>
+    <h2 class="cta-title reveal">Your moment<br>awaits <em>eternity</em></h2>
+    <div class="cta-divider reveal"></div>
+    <p class="cta-sub reveal">Only 47 commissions accepted per year. Begin your consultation with Maître Marchetti and claim your place in a lineage of extraordinary timekeeping.</p>
+    <div class="reveal" style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap">
+      <a href="#" class="btn-primary">Commission Your Timepiece</a>
+      <a href="#" class="btn-outline">Download the Catalogue</a>
+    </div>
+    <p class="reveal" style="margin-top:2.5rem;font-size:0.7rem;color:var(--text-muted);letter-spacing:0.2em">CURRENT WAIT: 14–18 MONTHS · DEPOSITS BY INVITATION</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <span class="footer-brand">Luminary</span>
+        <p class="footer-tagline">Masters of celestial horology. Every timepiece a private universe, crafted at the intersection of precision science and enduring art.</p>
+        <div class="social-links">
+          <a href="#">Instagram</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">WeChat</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Collections</div>
+        <ul class="footer-links">
+          <li><a href="#">Solstice</a></li>
+          <li><a href="#">Aphelion</a></li>
+          <li><a href="#">Zenith</a></li>
+          <li><a href="#">Archive Pieces</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Atelier</div>
+        <ul class="footer-links">
+          <li><a href="#">Our Philosophy</a></li>
+          <li><a href="#">The Craft</a></li>
+          <li><a href="#">Celestial Science</a></li>
+          <li><a href="#">Élise Marchetti</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Contact</div>
+        <ul class="footer-links">
+          <li><a href="#">Begin a Commission</a></li>
+          <li><a href="#">Geneva Atelier</a></li>
+          <li><a href="#">Private Viewings</a></li>
+          <li><a href="#">Collector Enquiries</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2024 Luminary SA, Geneva. All rights reserved.</div>
+      <div class="footer-coords">46°12′N 6°08′E · Atelier Céleste, Rue du Rhône, Geneva</div>
+      <div class="social-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Certificates</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  cursorRing.style.left = rx + 'px';
+  cursorRing.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a,button,.collection-card,.testimonial-card,.option-btn').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+// ── LOADER ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    loader.style.transition = 'opacity 0.8s';
+    setTimeout(() => { loader.style.display = 'none'; initHeroAnim(); }, 800);
+  }, 1800);
+});
+
+// ── STARFIELD ──
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+function createStars() {
+  stars = [];
+  for (let i = 0; i < 220; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.2 + 0.1,
+      o: Math.random() * 0.6 + 0.1,
+      speed: Math.random() * 0.3 + 0.05,
+      twinkle: Math.random() * Math.PI * 2
+    });
+  }
+}
+function drawStars(t) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.twinkle += 0.015;
+    const osc = Math.sin(s.twinkle) * 0.25;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,212,216,${(s.o + osc).toFixed(2)})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+resizeCanvas();
+createStars();
+drawStars();
+window.addEventListener('resize', () => { resizeCanvas(); createStars(); });
+
+// ── SCROLL ──
+const navbar = document.getElementById('navbar');
+const progressBar = document.getElementById('scroll-progress');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 60) navbar.classList.add('scrolled');
+  else navbar.classList.remove('scrolled');
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  progressBar.style.width = pct + '%';
+});
+
+// ── REVEAL ON SCROLL ──
+const reveals = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      const delay = e.target.dataset.delay || 0;
+      setTimeout(() => e.target.classList.add('visible'), delay);
+      revealObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach((el, i) => {
+  el.dataset.delay = (i % 4) * 100;
+  revealObs.observe(el);
+});
+
+// ── HERO ANIMATION (GSAP) ──
+function initHeroAnim() {
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.to('.hero-eyebrow', { opacity:1, y:0, duration:1, ease:'power3.out', delay:0.2 });
+  gsap.to('.hero-title', { opacity:1, y:0, duration:1.2, ease:'power3.out', delay:0.5 });
+  gsap.to('.hero-subtitle', { opacity:1, y:0, duration:1, ease:'power3.out', delay:0.8 });
+  gsap.to('.hero-actions', { opacity:1, y:0, duration:1, ease:'power3.out', delay:1.0 });
+  gsap.to('#heroWatch', { opacity:1, scale:1, rotation:0, duration:1.4, ease:'back.out(1.4)', delay:1.2 });
+
+  // Parallax on hero watch
+  gsap.to('#heroWatch', {
+    y: -80,
+    scrollTrigger: { trigger:'#hero', start:'top top', end:'bottom top', scrub:1 }
+  });
+
+  // Collection cards stagger
+  gsap.fromTo('.collection-card', 
+    { opacity:0, y:50 },
+    { opacity:1, y:0, stagger:0.15, duration:0.8, ease:'power2.out',
+      scrollTrigger: { trigger:'#collections', start:'top 75%' }
+    }
+  );
+
+  // Process steps
+  gsap.fromTo('.process-step',
+    { opacity:0, x:-30 },
+    { opacity:1, x:0, stagger:0.15, duration:0.7, ease:'power2.out',
+      scrollTrigger: { trigger:'#process', start:'top 75%' }
+    }
+  );
+
+  // CTA title split reveal
+  gsap.fromTo('.cta-title',
+    { opacity:0, y:60, skewY:3 },
+    { opacity:1, y:0, skewY:0, duration:1.2, ease:'power4.out',
+      scrollTrigger: { trigger:'#cta', start:'top 70%' }
+    }
+  );
+}
+
+// ── CONFIGURATOR ──
+function selectCase(btn, cls) {
+  document.querySelectorAll('#caseOptions .option-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const watch = document.getElementById('mainWatch');
+  watch.className = 'main-watch-inner ' + cls;
+}
+document.querySelectorAll('#dialOptions .option-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('#dialOptions .option-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ── OPTION ROWS generic toggle ──
+document.querySelectorAll('.option-row').forEach(row => {
+  row.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.closest('#caseOptions') || this.closest('#dialOptions')) return;
+      row.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+
+// ── PARALLAX NEBULA PARTICLES ──
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 30;
+  const y = (e.clientY / window.innerHeight - 0.5) * 30;
+  document.querySelectorAll('.nebula-particle').forEach((p, i) => {
+    const factor = (i + 1) * 0.4;
+    p.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+  });
+});
+</script>
+</body>
+</html>
